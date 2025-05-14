@@ -4,9 +4,7 @@
 #include "utils.c"
 
 int main(int argc, char** argv) {
-    //SetTargetFPS(GetMonitorRefreshRate(GetCurrentMonitor()));
     SetTargetFPS(60);
-
     SetConfigFlags(FLAG_WINDOW_RESIZABLE);
     InitWindow(500, 500, "Cooper's Basic Physics Simulator");
 
@@ -33,8 +31,6 @@ int main(int argc, char** argv) {
     Vector2 mouseDelta;
     //Main loop
     while(!WindowShouldClose()) {
-
-
         if (IsKeyDown(KEY_DOWN)) rectY += 2;
         if (IsKeyDown(KEY_UP)) rectY -= 2;
         if (IsKeyDown(KEY_LEFT)) rectX -= 2;
@@ -53,8 +49,8 @@ int main(int argc, char** argv) {
         if (IsKeyDown(KEY_F)) camera.target = (Vector2) {rectX, rectY};
         if (IsKeyDown(KEY_LEFT_CONTROL)) {
             camera.zoom += GetMouseWheelMove() * zoomScale * camera.zoom;
-            if (camera.zoom < 0.1) {
-                camera.zoom = 0.1;
+            if (camera.zoom < 0.001) {
+                camera.zoom = 0.001;
             }
         } else {
             mouseDelta = GetMouseWheelMoveV();
