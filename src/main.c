@@ -79,10 +79,6 @@ int main(int argc, char** argv) {
 
             points.ptr[i].velocity.x += points.ptr[i].acceleration.x;
             points.ptr[i].velocity.y += points.ptr[i].acceleration.y;
-<<<<<<< HEAD
-=======
-            //printf("(%.30lf, %.30lf)\n", points.ptr[i].acceleration.x, points.ptr[i].acceleration.y);
->>>>>>> 84287a0 (Trying to sync)
         }
 
         ClearBackground((Color) {0, 0, 0, 255});
