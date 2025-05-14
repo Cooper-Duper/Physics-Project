@@ -3,6 +3,8 @@
 #include <stdio.h>
 
 
+
+//Math utility functions:
 //Calculates the square of the distance between point1 and point2
 double measureSquareDist(PhysPoint* point1, PhysPoint* point2) {
     double xDiff = point1->position.x - point2->position.x;
@@ -11,12 +13,12 @@ double measureSquareDist(PhysPoint* point1, PhysPoint* point2) {
 }
 
 
-
 //Calculates the distance between point1 and point2
 double measureDist(PhysPoint* point1, PhysPoint* point2) {
     return sqrt(measureSquareDist(point1, point2));
 }
 
+//Updates the gravitational forces between two objects
 void updateGravObjects(PhysPoint* point1, PhysPoint* point2) {
     double force = (GRAV_CONSTANT * point1->mass * point2->mass) / measureSquareDist(point1, point2);
     printf("f: %.30lf\n", force);
@@ -55,6 +57,7 @@ void* PointArrAdd(PointArr* arr, PhysPoint point) {
 }
 
 
+//TODO: Save and load from basic JSON or XML
 void saveState(char* fileName, void* state, unsigned long size) {
     FILE* saveFile = fopen(fileName, "wb");
     fwrite(state, 1, size, saveFile);

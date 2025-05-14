@@ -45,10 +45,9 @@ int main(int argc, char** argv) {
             PhysPoint new = {
                 .position.x = (double) worldPos.x,
                 .position.y = (double) worldPos.y,
-                .mass = (double) (random() % 60) * 10000000.0
+                .mass = (double) (random() % 60) * 10000000.0 + 1.0
             };
             PointArrAdd(&points, new);
-            printf("%d\n", points.nextAddr);
         }
 
         if (IsKeyDown(KEY_F)) camera.target = (Vector2) {rectX, rectY};
@@ -77,7 +76,6 @@ int main(int argc, char** argv) {
 
             points.ptr[i].velocity.x += points.ptr[i].acceleration.x;
             points.ptr[i].velocity.y += points.ptr[i].acceleration.y;
-            printf("(%.30lf, %.30lf)\n", points.ptr[i].acceleration.x, points.ptr[i].acceleration.y);
         }
 
         ClearBackground((Color) {0, 0, 0, 255});
