@@ -21,7 +21,7 @@ double measureDist(PhysPoint* point1, PhysPoint* point2) {
 //Updates the gravitational forces between two objects
 void updateGravObjects(PhysPoint* point1, PhysPoint* point2) {
     double force = (GRAV_CONSTANT * point1->mass * point2->mass) / measureSquareDist(point1, point2);
-    printf("f: %.30lf\n", force);
+    //printf("f: %.30lf\n", force);
     double dist = measureDist(point1, point2);
     point1->acceleration.x += (force / point1->mass) * (point2->position.x - point1->position.x)/dist;
     point1->acceleration.y += (force / point1->mass) * (point2->position.y - point1->position.y)/dist;
@@ -49,6 +49,7 @@ void* PointArrAdd(PointArr* arr, PhysPoint point) {
     if (arr->nextAddr >= arr->len) {
         arr->len *= 2;
         arr->ptr  = (PhysPoint*) realloc(arr->ptr, sizeof(PhysPoint) * arr->len);
+        printf("Growing array to size %d\n", arr->len);
     }
     arr->ptr[arr->nextAddr] = point;
     arr->nextAddr += 1;

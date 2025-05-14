@@ -64,11 +64,14 @@ int main(int argc, char** argv) {
         }
 
 
+        
+        //Breaks with more than 17 for some reason...
         for (int i = 0; i < points.nextAddr; i++) {
             for (int j = i + 1; j < points.nextAddr; j++) {
                 updateGravObjects(&points.ptr[i], &points.ptr[j]);
             }
         }
+        
 
         for (int i = 0; i < points.nextAddr; i++) {
             points.ptr[i].position.x += points.ptr[i].velocity.x;
@@ -76,6 +79,10 @@ int main(int argc, char** argv) {
 
             points.ptr[i].velocity.x += points.ptr[i].acceleration.x;
             points.ptr[i].velocity.y += points.ptr[i].acceleration.y;
+<<<<<<< HEAD
+=======
+            //printf("(%.30lf, %.30lf)\n", points.ptr[i].acceleration.x, points.ptr[i].acceleration.y);
+>>>>>>> 84287a0 (Trying to sync)
         }
 
         ClearBackground((Color) {0, 0, 0, 255});
