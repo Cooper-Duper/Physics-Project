@@ -9,4 +9,4 @@ clear:
 	rm output/PhysSim
 
 build-wasm:
-	emcc -o output/wasmHost.html -lm -lraylib -I/usr/include src/main.c
+	emcc -o output/sim.html src/main.c -Os -Wall ./emraylib/raylib/src/libraylib.a -I. -I./emraylib/raylib/src/ -L. -L./emraylib/raylib/src/raylib.h -s USE_GLFW=3 -DPLATFORM_WEB

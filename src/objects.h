@@ -1,10 +1,5 @@
 #define GRAV_CONSTANT 0.000000000066743
-
-
-typedef struct DoubleVector2 {
-    double x;
-    double y;
-} DoubleVector2;
+#include "vectors.h"
 
 
 enum Materials {
@@ -43,7 +38,7 @@ typedef struct spring {
 
 
 typedef struct circle {
-    PhysPoint center;
+    PhysPoint* center;
     double radius;
 } Circle;
 

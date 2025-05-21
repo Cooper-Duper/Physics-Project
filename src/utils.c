@@ -4,7 +4,25 @@
 
 
 
-//Math utility functions:
+/*
+double simpson13(double coefficient, double timeStep) {
+    return (timeStep / 6.0) * (coefficient + 6 * coefficient +  
+}
+*/
+
+/*
+void simpson13IncrementPos(DoubleVector2 pos, DoubleVector2 vel, DoubleVector2 acc, double timeStep) {
+}
+*/
+
+void EulerIncrementPos(DoubleVector2 pos, DoubleVector2 vel, DoubleVector2 acc, double timeStep) {
+    pos.x += vel.x * timeStep;
+    vel.x += acc.x * timeStep;
+
+    pos.y += vel.y * timeStep;
+    vel.y += acc.y * timeStep;
+}
+
 //Calculates the square of the distance between point1 and point2
 double measureSquareDist(PhysPoint* point1, PhysPoint* point2) {
     double xDiff = point1->position.x - point2->position.x;
@@ -43,19 +61,6 @@ double measureAngle(PhysPoint* point1, PhysPoint* mid, PhysPoint* point2) {
     return acos((aSquare + bSquare - measureSquareDist(point1, point2)) / (2 * sqrt(aSquare) * sqrt(bSquare)));
 }
 
-
-//An array of physics points
-void* PointArrAdd(PointArr* arr, PhysPoint point) {
-    if (arr->nextAddr >= arr->len) {
-        arr->len *= 2;
-        arr->ptr  = (PhysPoint*) realloc(arr->ptr, sizeof(PhysPoint) * arr->len);
-        printf("Growing array to size %d\n", arr->len);
-    }
-    arr->ptr[arr->nextAddr] = point;
-    arr->nextAddr += 1;
-
-    return arr->ptr;
-}
 
 
 //TODO: Save and load from basic JSON or XML

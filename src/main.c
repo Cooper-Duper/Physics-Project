@@ -28,6 +28,15 @@ int main(int argc, char** argv) {
         .nextAddr = 0
     };
 
+    State state;
+    state.points.len = 20;
+    state.points.ptr = malloc(sizeof(PhysPoint) * state.points.len);
+    state.points.nextAddr = 0;
+
+    state.circles.len = 20;
+    state.circles.ptr = malloc(sizeof(Circle) * state.circles.len);
+    state.circles.nextAddr = 0;
+
     Vector2 mouseDelta;
     //Main loop
     while(!WindowShouldClose()) {
@@ -38,12 +47,19 @@ int main(int argc, char** argv) {
         if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) {
             puts("Mouse Pressed");
             Vector2 worldPos = GetScreenToWorld2D(GetMousePosition(), camera);
-            PhysPoint new = {
+            PhysPoint newPoint = {
                 .position.x = (double) worldPos.x,
                 .position.y = (double) worldPos.y,
                 .mass = (double) (random() % 60) * 10000000.0 + 1.0
             };
-            PointArrAdd(&points, new);
+            int i = PointArrAdd(state.points, &newPoint);
+
+            Circle newCircle = {
+                .center = state.points.ptr + i,
+                .radius = newPoint.mass / 60000.0
+            };
+            CircArrAdd(state.circles, &newCircle);
+            //printf("Circle added at address %p\n", );
         }
 
         if (IsKeyDown(KEY_F)) camera.target = (Vector2) {rectX, rectY};
@@ -60,11 +76,10 @@ int main(int argc, char** argv) {
         }
 
 
-        
         //Breaks with more than 17 for some reason...
-        for (int i = 0; i < points.nextAddr; i++) {
-            for (int j = i + 1; j < points.nextAddr; j++) {
-                updateGravObjects(&points.ptr[i], &points.ptr[j]);
+        for (int i = 0; i < state.circles.nextAddr; i++) {
+            for (int j = i + 1; j < state.circles.nextAddr; j++) {
+                updateGravObjects(state.circles.ptr[i].center, state.circles.ptr[j].center);
             }
         }
         
