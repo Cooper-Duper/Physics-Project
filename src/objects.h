@@ -1,4 +1,5 @@
 #define GRAV_CONSTANT 0.000000000066743
+#include <stdint.h>
 #include "vectors.h"
 
 
@@ -39,7 +40,7 @@ typedef struct spring {
 
 
 typedef struct circle {
-    int centerAddr;
+    uint16_t centerAddr;
     double radius;
 } Circle;
 

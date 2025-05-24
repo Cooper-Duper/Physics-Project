@@ -1,5 +1,5 @@
 build-debug:
-	clang -o output/PhysSim -lm -lraylib src/main.c -Werror -fsanitize=address
+	clang -o output/PhysSim -lm -lraylib src/main.c -Werror -fsanitize=address -std=c99
 
 build-release:
 	

@@ -1,3 +1,4 @@
 -l raylib.h
 -lm
 -l stdio
+-std=c99

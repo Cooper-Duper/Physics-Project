@@ -1,4 +1,5 @@
 #include "objects.h"
+#include <raylib.h>
 enum InteractionMode {
     NORMAL,
     MOVE,
@@ -9,26 +10,26 @@ enum InteractionMode {
 
 //Custom arrays
 typedef struct intarray {
-    int len;
-    int next;
-    int* ptr;
+    uint16_t len;
+    uint16_t next;
+    uint16_t* ptr;
 } IntArr;
 
 typedef struct pointarray {
-    int len;
-    int nextAddr;
+    uint16_t len;
+    uint16_t nextAddr;
     PhysPoint* ptr;
 } PointArr;
 
 typedef struct linearr {
-    int len;
-    int nextAddr;
+    uint16_t len;
+    uint16_t nextAddr;
     Line* ptr;
 } LineArr;
 
 typedef struct circlearray {
-    int len;
-    int nextAddr;
+    uint16_t len;
+    uint16_t nextAddr;
     Circle* ptr;
 } CircArr;
 
@@ -38,11 +39,18 @@ const unsigned char fontData[] = {};
 
 
 struct Time {
-        long prevTime;
-        long currTime;
+        uint64_t prevTime;
+        uint64_t currTime;
         double runningFrameTime;
         double timeStep;
         double desiredFrameTime;
+};
+
+struct Cam {
+    Camera2D camera;
+    float panSpeed;
+    float panScale;
+    float zoomScale;
 };
 
 typedef struct simState {
@@ -51,4 +59,7 @@ typedef struct simState {
     CircArr circles;
     double currTime;
     struct Time time;
+    struct Cam cam;
+    uint64_t physFrameCounter;
+    uint8_t isPaused;
 } State;

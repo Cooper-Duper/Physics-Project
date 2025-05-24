@@ -16,6 +16,7 @@ void simpson13IncrementPos(DoubleVector2 pos, DoubleVector2 vel, DoubleVector2 a
 }
 */
 
+
 void EulerIncrementPosPoint(PhysPoint *point, double timeStep) {
 
     point->acceleration.x = point->forceAccumulator.x / point->mass;
@@ -95,4 +96,127 @@ void* loadState(char* fileName) {
     fread(stateData, 1, fileSize, saveFile);
     fclose(saveFile);
     return stateData;
+}
+
+
+
+
+State state;
+
+void updateTime() {
+    state.time.currTime = clock();
+    state.time.timeStep = (double) (state.time.currTime - state.time.prevTime) / CLOCKS_PER_SEC;
+    state.time.prevTime = state.time.currTime;
+    state.time.runningFrameTime += state.time.timeStep;
+}
+
+Camera2D initializeCamera() {
+    Camera2D camera = {0};
+    camera.target = (Vector2) {0.0f, 0.0f};
+    camera.offset = (Vector2) {GetRenderWidth() / 2.0, GetRenderHeight() / 2.0};
+    camera.rotation = 0.0f;
+    camera.zoom = 1.0f;
+    return camera;
+}
+
+void setup() {
+    SetConfigFlags(FLAG_WINDOW_RESIZABLE);
+    InitWindow(500, 500, "Cooper's Basic Physics Simulator");
+
+    state.cam.camera = initializeCamera();
+    state.isPaused = 0;
+    //Setting the desired time for each frame in seconds (1 / desired frame rate)
+    state.time.desiredFrameTime = 1.0 / 60.0;
+    
+    //Initializing the State variables
+    state.points.len = 20;
+    state.points.ptr = malloc(sizeof(PhysPoint) * state.points.len);
+    state.points.nextAddr = 0;
+
+    state.circles.len = 20;
+    state.circles.ptr = malloc(sizeof(Circle) * state.circles.len);
+    state.circles.nextAddr = 0;
+}
+
+void cleanup() {
+    free(state.points.ptr);
+    free(state.circles.ptr);
+}
+
+//Temporary only
+int rectX = 0;
+int rectY = 0;
+
+void drawFrame() {
+    if (IsWindowResized()) {
+        state.cam.camera.offset = (Vector2) {GetRenderWidth() / 2.0, GetRenderHeight() / 2.0};
+    }
+    ClearBackground((Color) {0, 0, 0, 255});
+    BeginDrawing();
+    BeginMode2D(state.cam.camera);
+    for (int i = 0; i < state.points.nextAddr; i++) {
+        DrawCircleLines(state.points.ptr[i].position.x, state.points.ptr[i].position.y, 
+                state.points.ptr[i].mass / 10000000, YELLOW);
+    }
+
+    DrawRectangle(rectX, rectY, 50, 50, (Color) {120, 200, 50, 255});
+    DrawCircle(0, 0, 10.0f, GREEN);
+    EndMode2D();
+    EndDrawing();
+}
+
+void updatePhysics() {
+    //Updating accelerations based on gravity
+    for (int i = 0; i < state.circles.nextAddr; i++) {
+        for (int j = i + 1; j < state.circles.nextAddr; j++) {
+            updateGravObjects(state.points.ptr + state.circles.ptr[i].centerAddr, state.points.ptr + state.circles.ptr[j].centerAddr, state.time.timeStep);
+        }
+    }
+
+    //Updating positions based on acceleration and velocity
+    for (int i = 0; i < state.points.nextAddr; i++) {
+        EulerIncrementPosPoint(&state.points.ptr[i], state.time.timeStep);
+    }
+
+    state.physFrameCounter += 1;
+    //Drawing the frame if sufficient time has passed
+}
+
+
+
+void processInputs(void) {
+    //Control time pausing
+    if (IsKeyPressed(KEY_SPACE)) state.isPaused = !state.isPaused;
+
+    if (IsKeyDown(KEY_F)) state.cam.camera.target = (Vector2) {rectX, rectY};
+    if (IsKeyDown(KEY_LEFT_CONTROL)) {
+        state.cam.camera.zoom += GetMouseWheelMove() * state.cam.zoomScale * state.cam.camera.zoom;
+        if (state.cam.camera.zoom < 0.001) {
+            state.cam.camera.zoom = 0.001;
+        }
+    } else {
+        Vector2 mouseDelta = GetMouseWheelMoveV();
+        state.cam.panScale = state.cam.panSpeed / state.cam.camera.zoom;
+        state.cam.camera.target.x -= mouseDelta.x * state.cam.panScale;
+        state.cam.camera.target.y -= mouseDelta.y * state.cam.panScale;
+    }
+    if (IsKeyDown(KEY_DOWN)) rectY += 2;
+    if (IsKeyDown(KEY_UP)) rectY -= 2;
+    if (IsKeyDown(KEY_LEFT)) rectX -= 2;
+    if (IsKeyDown(KEY_RIGHT)) rectX += 2;
+    if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) {
+        Vector2 worldPos = GetScreenToWorld2D(GetMousePosition(), state.cam.camera);
+        PhysPoint newPoint = {
+            .position.x = (double) worldPos.x,
+            .position.y = (double) worldPos.y,
+            .mass = (double) (rand() % 60) * 10000000.0 + 2.0
+        };
+        int i = PointArrAdd(&state.points, &newPoint);
+
+        Circle newCircle = {
+            .centerAddr = i,
+            .radius = newPoint.mass / 60000.0
+        };
+        CircArrAdd(&state.circles, &newCircle);
+    }
 }
