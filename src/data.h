@@ -36,9 +36,19 @@ typedef struct circlearray {
 //Will be used to store the font internally
 const unsigned char fontData[] = {};
 
+
+struct Time {
+        long prevTime;
+        long currTime;
+        double runningFrameTime;
+        double timeStep;
+        double desiredFrameTime;
+};
+
 typedef struct simState {
     PointArr points;
     LineArr lines;
     CircArr circles;
     double currTime;
+    struct Time time;
 } State;

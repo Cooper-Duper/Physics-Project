@@ -1,6 +1,7 @@
 #include <math.h>
 #include "shapeOps.c"
 #include <stdio.h>
+#include <time.h>
 
 
 
@@ -14,6 +15,18 @@ double simpson13(double coefficient, double timeStep) {
 void simpson13IncrementPos(DoubleVector2 pos, DoubleVector2 vel, DoubleVector2 acc, double timeStep) {
 }
 */
+
+void EulerIncrementPosPoint(PhysPoint *point, double timeStep) {
+
+    point->acceleration.x = point->forceAccumulator.x / point->mass;
+    point->acceleration.y = point->forceAccumulator.y / point->mass;
+
+    point->position.x += point->velocity.x * timeStep;
+    point->velocity.x += point->acceleration.x * timeStep;
+
+    point->position.y += point->velocity.y * timeStep;
+    point->velocity.y += point->acceleration.y * timeStep;
+}
 
 void EulerIncrementPos(DoubleVector2 pos, DoubleVector2 vel, DoubleVector2 acc, double timeStep) {
     pos.x += vel.x * timeStep;
@@ -37,15 +50,15 @@ double measureDist(PhysPoint* point1, PhysPoint* point2) {
 }
 
 //Updates the gravitational forces between two objects
-void updateGravObjects(PhysPoint* point1, PhysPoint* point2) {
+void updateGravObjects(PhysPoint* point1, PhysPoint* point2, double timeStep) {
     double force = (GRAV_CONSTANT * point1->mass * point2->mass) / measureSquareDist(point1, point2);
     //printf("f: %.30lf\n", force);
     double dist = measureDist(point1, point2);
-    point1->acceleration.x += (force / point1->mass) * (point2->position.x - point1->position.x)/dist;
-    point1->acceleration.y += (force / point1->mass) * (point2->position.y - point1->position.y)/dist;
+    point1->forceAccumulator.x += force * (point2->position.x - point1->position.x)/dist;
+    point1->forceAccumulator.y += force * (point2->position.y - point1->position.y)/dist;
 
-    point2->acceleration.x += (force / point2->mass) * (point1->position.x - point2->position.x)/dist;
-    point2->acceleration.y += (force / point2->mass) * (point1->position.y - point2->position.y)/dist;
+    point2->forceAccumulator.x += force * (point1->position.x - point2->position.x)/dist;
+    point2->forceAccumulator.y += force * (point1->position.y - point2->position.y)/dist;
 }
 
 //Measures the angle formed by point1, mid, and point2

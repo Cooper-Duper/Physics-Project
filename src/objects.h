@@ -19,6 +19,7 @@ typedef struct physicsPoint {
     DoubleVector2 position;
     DoubleVector2 velocity;
     DoubleVector2 acceleration;
+    DoubleVector2 forceAccumulator;
     enum Materials mat;
 } PhysPoint;
 
@@ -38,7 +39,7 @@ typedef struct spring {
 
 
 typedef struct circle {
-    PhysPoint* center;
+    int centerAddr;
     double radius;
 } Circle;
 

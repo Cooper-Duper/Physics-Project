@@ -1,28 +1,31 @@
 #include "data.h"
 #include <stdlib.h>
 #include <string.h>
+#include <stdio.h>
 
 
-int PointArrAdd(PointArr arr, PhysPoint* toAdd) {
-    if (arr.nextAddr >= arr.len) {
-        arr.len *= 2;
-        void* e = realloc((void*) arr.ptr, arr.len * sizeof(PhysPoint));
+int PointArrAdd(PointArr *arr, PhysPoint* toAdd) {
+    if (arr->nextAddr >= arr->len - 1) {
+        arr->len *= 2;
+        void* e = realloc((void*) arr->ptr, arr->len * sizeof(PhysPoint));
         if (e == NULL) return -1;
+        arr->ptr = (PhysPoint*) e;
     }
-    arr.ptr[arr.nextAddr] = *toAdd;
-    arr.nextAddr += 1;
-    return arr.nextAddr - 1;
+    arr->ptr[arr->nextAddr] = *toAdd;
+    arr->nextAddr += 1;
+    return arr->nextAddr - 1;
 }
 
-int CircArrAdd(CircArr arr, Circle* toAdd) {
-    if (arr.nextAddr >= arr.len) {
-        arr.len *= 2;
-        void* e = realloc((void*) arr.ptr, arr.len * sizeof(Circle));
+int CircArrAdd(CircArr *arr, Circle* toAdd) {
+    if (arr->nextAddr >= arr->len - 1) {
+        arr->len *= 2;
+        void* e = realloc((void*) arr->ptr, arr->len * sizeof(Circle));
         if (e == NULL) return -1;
+        arr->ptr = (Circle*) e;
     }
-    arr.ptr[arr.nextAddr] = *toAdd;
-    arr.nextAddr += 1;
-    return arr.nextAddr - 1;
+    arr->ptr[arr->nextAddr] = *toAdd;
+    arr->nextAddr += 1;
+    return arr->nextAddr - 1;
 }
 
 //Creates a line between two PhysPoints
