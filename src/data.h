@@ -49,7 +49,6 @@ struct Time {
 struct Cam {
     Camera2D camera;
     float panSpeed;
-    float panScale;
     float zoomScale;
 };
 

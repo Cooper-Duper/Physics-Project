@@ -1,5 +1,6 @@
 #include <math.h>
 #include "shapeOps.c"
+#include <raylib.h>
 #include <stdio.h>
 #include <time.h>
 
@@ -98,11 +99,9 @@ void* loadState(char* fileName) {
     return stateData;
 }
 
-
-
-
 State state;
 
+//Updates the simulation time every run
 void updateTime() {
     state.time.currTime = clock();
     state.time.timeStep = (double) (state.time.currTime - state.time.prevTime) / CLOCKS_PER_SEC;
@@ -110,18 +109,22 @@ void updateTime() {
     state.time.runningFrameTime += state.time.timeStep;
 }
 
+//Sets up the camera for rendering
 Camera2D initializeCamera() {
     Camera2D camera = {0};
     camera.target = (Vector2) {0.0f, 0.0f};
     camera.offset = (Vector2) {GetRenderWidth() / 2.0, GetRenderHeight() / 2.0};
     camera.rotation = 0.0f;
     camera.zoom = 1.0f;
+    state.cam.zoomScale = 0.1;
+    state.cam.panSpeed = 10;
     return camera;
 }
 
+//Sets up the simulation, including the camera, window, and state variables
 void setup() {
     SetConfigFlags(FLAG_WINDOW_RESIZABLE);
-    InitWindow(500, 500, "Cooper's Basic Physics Simulator");
+    InitWindow(1600, 1000, "Cooper's Basic Physics Simulator");
 
     state.cam.camera = initializeCamera();
     state.isPaused = 0;
@@ -138,6 +141,7 @@ void setup() {
     state.circles.nextAddr = 0;
 }
 
+//Frees memory after execution is completed
 void cleanup() {
     free(state.points.ptr);
     free(state.circles.ptr);
@@ -147,6 +151,13 @@ void cleanup() {
 int rectX = 0;
 int rectY = 0;
 
+void drawUI() {
+    const char* framerateText = TextFormat("Render rate: %.0f Hz\nSimulation rate: %.0f kHz", 
+            1/(state.time.runningFrameTime), 1.0/(state.time.timeStep * 1000));
+    DrawText(framerateText, GetRenderWidth() - MeasureText(framerateText, 20) - 10, 10, 20, WHITE);
+}
+
+//Draws each frame
 void drawFrame() {
     if (IsWindowResized()) {
         state.cam.camera.offset = (Vector2) {GetRenderWidth() / 2.0, GetRenderHeight() / 2.0};
@@ -162,9 +173,11 @@ void drawFrame() {
     DrawRectangle(rectX, rectY, 50, 50, (Color) {120, 200, 50, 255});
     DrawCircle(0, 0, 10.0f, GREEN);
     EndMode2D();
+    drawUI();
     EndDrawing();
 }
 
+//Updates the physics based on the time step (Calculated and set in the state variable in the UpdateTime function)
 void updatePhysics() {
     //Updating accelerations based on gravity
     for (int i = 0; i < state.circles.nextAddr; i++) {
@@ -178,37 +191,47 @@ void updatePhysics() {
         EulerIncrementPosPoint(&state.points.ptr[i], state.time.timeStep);
     }
 
+    //Incrementing the counter of physics frames passed (for metrics only)
     state.physFrameCounter += 1;
-    //Drawing the frame if sufficient time has passed
 }
 
-
-
+//Processes user inputs
 void processInputs(void) {
     //Control time pausing
     if (IsKeyPressed(KEY_SPACE)) state.isPaused = !state.isPaused;
+    Vector2 mouseWorldPos = GetScreenToWorld2D(GetMousePosition(), state.cam.camera);
 
+    //Temporary camera position reset
     if (IsKeyDown(KEY_F)) state.cam.camera.target = (Vector2) {rectX, rectY};
+
+    //Camera controls (Pan and zoom)
     if (IsKeyDown(KEY_LEFT_CONTROL)) {
         state.cam.camera.zoom += GetMouseWheelMove() * state.cam.zoomScale * state.cam.camera.zoom;
+        Vector2 newMouseWorldPos = GetScreenToWorld2D(GetMousePosition(), state.cam.camera);
+        //Bias towards mouse
+        state.cam.camera.target.x -= newMouseWorldPos.x - mouseWorldPos.x;
+        state.cam.camera.target.y -= newMouseWorldPos.y - mouseWorldPos.y;
+
         if (state.cam.camera.zoom < 0.001) {
             state.cam.camera.zoom = 0.001;
         }
     } else {
         Vector2 mouseDelta = GetMouseWheelMoveV();
-        state.cam.panScale = state.cam.panSpeed / state.cam.camera.zoom;
-        state.cam.camera.target.x -= mouseDelta.x * state.cam.panScale;
-        state.cam.camera.target.y -= mouseDelta.y * state.cam.panScale;
+        float panScale = state.cam.panSpeed / state.cam.camera.zoom;
+        state.cam.camera.target.x -= mouseDelta.x * panScale;
+        state.cam.camera.target.y -= mouseDelta.y * panScale;
     }
+
     if (IsKeyDown(KEY_DOWN)) rectY += 2;
     if (IsKeyDown(KEY_UP)) rectY -= 2;
     if (IsKeyDown(KEY_LEFT)) rectX -= 2;
     if (IsKeyDown(KEY_RIGHT)) rectX += 2;
+
+    //Creating a new physics point at the mouse position. WIP
     if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) {
-        Vector2 worldPos = GetScreenToWorld2D(GetMousePosition(), state.cam.camera);
         PhysPoint newPoint = {
-            .position.x = (double) worldPos.x,
-            .position.y = (double) worldPos.y,
+            .position.x = (double) mouseWorldPos.x,
+            .position.y = (double) mouseWorldPos.y,
             .mass = (double) (rand() % 60) * 10000000.0 + 2.0
         };
         int i = PointArrAdd(&state.points, &newPoint);
