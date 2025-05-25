@@ -1,7 +1,6 @@
 #include "data.h"
 #include <stdlib.h>
 #include <string.h>
-#include <stdio.h>
 
 
 int PointArrAdd(PointArr *arr, PhysPoint* toAdd) {

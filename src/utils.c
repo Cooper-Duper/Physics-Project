@@ -1,27 +1,39 @@
 #include <math.h>
 #include "shapeOps.c"
-#include <raylib.h>
-#include <stdio.h>
 #include <time.h>
+#include <stdio.h>
+State state;
 
 
-
-/*
-double simpson13(double coefficient, double timeStep) {
-    return (timeStep / 6.0) * (coefficient + 6 * coefficient +  
+void RK4IncrementPosPoint(PhysPoint *point, double timeStep) {
+    //Do nothing if it is a static point
+    if (point->isStatic) return;
 }
-*/
 
-/*
-void simpson13IncrementPos(DoubleVector2 pos, DoubleVector2 vel, DoubleVector2 acc, double timeStep) {
+//Using Verlet integration
+//This uses the "velocity" field to instead store the previous postion
+//BE WARNED
+void VerletIncrementPosPoint(PhysPoint* point, double timeStep, double dampening) {
+    if (point->isStatic) return;
+    point->acceleration.x = point->forceAccumulator.x / point->mass;
+    point->acceleration.y = point->forceAccumulator.y / point->mass;
+    point->forceAccumulator.x = 0;
+    point->forceAccumulator.y = 0;
+
+    DoubleVector2 temp = point->position; 
+    point-> position.x = 2 * point->position.x - dampening * point->velocity.x + point->acceleration.x * timeStep * timeStep;
+    point-> position.y = 2 * point->position.y - dampening * point->velocity.y + point->acceleration.y * timeStep * timeStep;
+    point->velocity = temp;
 }
-*/
-
 
 void EulerIncrementPosPoint(PhysPoint *point, double timeStep) {
+    //Do nothing if it is a static point
+    if (point->isStatic) return;
 
     point->acceleration.x = point->forceAccumulator.x / point->mass;
     point->acceleration.y = point->forceAccumulator.y / point->mass;
+    point->forceAccumulator.x = 0;
+    point->forceAccumulator.y = 0;
 
     point->position.x += point->velocity.x * timeStep;
     point->velocity.x += point->acceleration.x * timeStep;
@@ -30,13 +42,6 @@ void EulerIncrementPosPoint(PhysPoint *point, double timeStep) {
     point->velocity.y += point->acceleration.y * timeStep;
 }
 
-void EulerIncrementPos(DoubleVector2 pos, DoubleVector2 vel, DoubleVector2 acc, double timeStep) {
-    pos.x += vel.x * timeStep;
-    vel.x += acc.x * timeStep;
-
-    pos.y += vel.y * timeStep;
-    vel.y += acc.y * timeStep;
-}
 
 //Calculates the square of the distance between point1 and point2
 double measureSquareDist(PhysPoint* point1, PhysPoint* point2) {
@@ -51,10 +56,27 @@ double measureDist(PhysPoint* point1, PhysPoint* point2) {
     return sqrt(measureSquareDist(point1, point2));
 }
 
+//Spring forces between two physics points
+void ApplySpringForce(Spring* spring) {
+    double pointDist = measureDist(state.points.ptr + spring->end1Index, state.points.ptr + spring->end2Index);
+    
+    //Hooke's Law
+    double forceMagnitude = -spring->constant * (-spring->InitialLen + pointDist);
+    
+    //Splitting into components using sin and cos ratios
+    DoubleVector2 point2Force = (DoubleVector2) {
+        .x = forceMagnitude * ((state.points.ptr + spring->end2Index)->position.x - (state.points.ptr + spring->end1Index)->position.x) / pointDist,
+        .y = forceMagnitude * ((state.points.ptr + spring->end2Index)->position.y - (state.points.ptr + spring->end1Index)->position.y) / pointDist,
+    };
+
+    //Adding forces to the accumulators
+    (state.points.ptr + spring->end1Index)->forceAccumulator = add((state.points.ptr + spring->end1Index)->forceAccumulator, negate(point2Force));
+    (state.points.ptr + spring->end2Index)->forceAccumulator = add((state.points.ptr + spring->end2Index)->forceAccumulator, point2Force);
+}
+
 //Updates the gravitational forces between two objects
-void updateGravObjects(PhysPoint* point1, PhysPoint* point2, double timeStep) {
+void UpdateGravObjects(PhysPoint* point1, PhysPoint* point2, double timeStep) {
     double force = (GRAV_CONSTANT * point1->mass * point2->mass) / measureSquareDist(point1, point2);
-    //printf("f: %.30lf\n", force);
     double dist = measureDist(point1, point2);
     point1->forceAccumulator.x += force * (point2->position.x - point1->position.x)/dist;
     point1->forceAccumulator.y += force * (point2->position.y - point1->position.y)/dist;
@@ -64,13 +86,8 @@ void updateGravObjects(PhysPoint* point1, PhysPoint* point2, double timeStep) {
 }
 
 //Measures the angle formed by point1, mid, and point2
-double measureAngle(PhysPoint* point1, PhysPoint* mid, PhysPoint* point2) {
+double MeasureAngle(PhysPoint* point1, PhysPoint* mid, PhysPoint* point2) {
     //Using the law of cosines solved for angle c
-    /*
-    c^2 = a^2 + b^2 - 2abcos(c)
-    2abcos(c) = - c^2 + a^2 + b^2
-    c = arccos((-c^2 +a^2 + b^2) / (2 * a * b))
-    */
     double aSquare = measureSquareDist(point1, mid);
     double bSquare = measureSquareDist(point2, mid);
     return acos((aSquare + bSquare - measureSquareDist(point1, point2)) / (2 * sqrt(aSquare) * sqrt(bSquare)));
@@ -99,7 +116,6 @@ void* loadState(char* fileName) {
     return stateData;
 }
 
-State state;
 
 //Updates the simulation time every run
 void updateTime() {
@@ -107,6 +123,14 @@ void updateTime() {
     state.time.timeStep = (double) (state.time.currTime - state.time.prevTime) / CLOCKS_PER_SEC;
     state.time.prevTime = state.time.currTime;
     state.time.runningFrameTime += state.time.timeStep;
+    state.time.totalSimTime += state.time.timeStep;
+}
+
+//Updates the time using a set frame time
+void updateTimeDetached(double timeStep) {
+    state.time.timeStep = timeStep;
+    state.time.runningFrameTime += state.time.timeStep;
+    state.time.totalSimTime += state.time.timeStep;
 }
 
 //Sets up the camera for rendering
@@ -182,7 +206,7 @@ void updatePhysics() {
     //Updating accelerations based on gravity
     for (int i = 0; i < state.circles.nextAddr; i++) {
         for (int j = i + 1; j < state.circles.nextAddr; j++) {
-            updateGravObjects(state.points.ptr + state.circles.ptr[i].centerAddr, state.points.ptr + state.circles.ptr[j].centerAddr, state.time.timeStep);
+            UpdateGravObjects(state.points.ptr + state.circles.ptr[i].centerAddr, state.points.ptr + state.circles.ptr[j].centerAddr, state.time.timeStep);
         }
     }
 

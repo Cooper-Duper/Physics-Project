@@ -44,6 +44,7 @@ struct Time {
         double runningFrameTime;
         double timeStep;
         double desiredFrameTime;
+        double totalSimTime;
 };
 
 struct Cam {

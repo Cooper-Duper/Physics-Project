@@ -1,4 +1,4 @@
-typedef struct DoubleVector2 {
+typedef struct doubVec2 {
     double x;
     double y;
 } DoubleVector2;

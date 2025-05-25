@@ -1,5 +1,3 @@
-#include <raylib.h>
-#include <limits.h>
 #include "utils.c"
 #if defined(PLATFORM_WEB)
 //Possible emscripten header... Needs to be installed

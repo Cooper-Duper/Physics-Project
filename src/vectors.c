@@ -1,10 +1,4 @@
-#include "objects.h"
-#include "vectorOps.h"
-
-typedef struct DoubleVector2 {
-    double x;
-    double y;
-} DoubleVector2;
+#include "vectors.h"
 
 DoubleVector2 add(DoubleVector2 vec1, DoubleVector2 vec2) {
     return (DoubleVector2) {vec1.x + vec2.x, vec1.y + vec2.y};

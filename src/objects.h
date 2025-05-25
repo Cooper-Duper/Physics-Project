@@ -22,6 +22,7 @@ typedef struct physicsPoint {
     DoubleVector2 acceleration;
     DoubleVector2 forceAccumulator;
     enum Materials mat;
+    uint8_t isStatic;
 } PhysPoint;
 
 typedef struct line {
@@ -31,10 +32,11 @@ typedef struct line {
 
 
 typedef struct spring {
-    float constant;
-    PhysPoint* end1;
-    PhysPoint* end2;
-    float InitialLenSquare;
+    double constant;
+    uint16_t end1Index;
+    uint16_t end2Index;
+    double InitialLenSquare;
+    double InitialLen;
     enum SpringTypes type;
 } Spring;
 
