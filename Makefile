@@ -2,6 +2,7 @@ build-debug:
 	clang -o output/PhysSim -lm -lraylib src/vectors.c src/main.c -Werror -fsanitize=address -std=c99
 
 build-release:
+	clang -o output/PhysSim -lm -lraylib src/vectors.c src/main.c -Werror -O2 -std=c99
 	
 run:
 	./output/PhysSim
