@@ -37,6 +37,7 @@ typedef struct spring {
     uint16_t end2Index;
     double InitialLenSquare;
     double InitialLen;
+    double len;
     enum SpringTypes type;
 } Spring;
 

@@ -1,12 +1,14 @@
 #include "objects.h"
 #include <raylib.h>
-enum InteractionMode {
+typedef enum InteractionMode {
     NORMAL,
     MOVE,
     CREATE_LINE,
     CREATE_POLYLINE,
-    SWITCH_TYPE
-};
+    SWITCH_TYPE,
+    CREATE_CIRCLE,
+    CREATE_SPRING
+} Mode;
 
 //Custom arrays
 typedef struct intarray {
@@ -27,6 +29,12 @@ typedef struct linearr {
     Line* ptr;
 } LineArr;
 
+typedef struct springarray {
+    uint16_t len;
+    uint16_t nextAddr;
+    Spring* ptr;
+} SpringArr;
+
 typedef struct circlearray {
     uint16_t len;
     uint16_t nextAddr;
@@ -41,9 +49,13 @@ const unsigned char fontData[] = {};
 struct Time {
         uint64_t prevTime;
         uint64_t currTime;
-        double runningFrameTime;
         double timeStep;
+        double realElapsedStep;
+        double runningPollingTime;
+        double runningFrameTime;
         double desiredFrameTime;
+        uint64_t desiredTicksPerFrame;
+        uint64_t runningTicks;
         double totalSimTime;
 };
 
@@ -53,13 +65,35 @@ struct Cam {
     float zoomScale;
 };
 
+struct Energy {
+    double springPotential;
+    double gravPotential;
+    double kinetic;
+};
+
+struct GravData {
+    uint8_t isUniversal;
+    double gravAccel;
+    double baseLevel;
+};
+
+enum intMethod {
+    EULER,
+    VERLET
+};
+
 typedef struct simState {
     PointArr points;
     LineArr lines;
+    SpringArr springs;
     CircArr circles;
     double currTime;
+    enum InteractionMode mode;
+    enum intMethod intType;
     struct Time time;
     struct Cam cam;
+    struct Energy energy;
+    struct GravData grav;
     uint64_t physFrameCounter;
     uint8_t isPaused;
 } State;
