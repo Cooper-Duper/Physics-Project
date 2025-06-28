@@ -1,5 +1,65 @@
-#include "objects.h"
-#include <raylib.h>
+#include <stdint.h>
+#include "vectors.h"
+
+#define GRAV_CONSTANT 0.000000000066743
+
+//The type of material that can be assigned to a line
+enum Materials {
+    IDEAL_SOLID,
+    IDEAL_STRING,
+    SPRING
+};
+
+//The types of springs (Currently not used)
+enum SpringTypes {
+    BI_DIRECTIONAL,
+    COMPRESSIVE_ONLY,
+    EXPANSIVE_ONLY
+};
+
+//Data type for storing a point
+//TODO: remove and transition to SoA format
+typedef struct physicsPoint {
+    double mass;
+    DoubleVector2 position;
+    DoubleVector2 velocity;
+    DoubleVector2 acceleration;
+    DoubleVector2 forceAccumulator;
+    enum Materials mat;
+    uint8_t isStatic;
+} PhysPoint;
+
+//Line struct
+//TODO: remove and transition to SoA format
+typedef struct line {
+    PhysPoint* end1;
+    PhysPoint* end2;
+} Line;
+
+
+//Stores data for a spring
+//TODO: remove and transition to SoA format
+typedef struct spring {
+    double constant;
+    uint16_t end1Index;
+    uint16_t end2Index;
+    double InitialLenSquare;
+    double InitialLen;
+    double len;
+    enum SpringTypes type;
+} Spring;
+
+
+//Data needed to draw a circle
+//TODO: remove and transition to SoA format
+typedef struct circle {
+    uint16_t centerAddr;
+    double radius;
+} Circle;
+
+
+
+
 typedef enum InteractionMode {
     NORMAL,
     MOVE,
@@ -40,7 +100,6 @@ typedef struct circlearray {
     uint16_t nextAddr;
     Circle* ptr;
 } CircArr;
-
 
 //Will be used to store the font internally
 const unsigned char fontData[] = {};

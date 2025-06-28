@@ -5,6 +5,8 @@
 
 int main(int argc, char** argv) {
     setup();
+    //Setting up basic scenarios for demos
+    //TODO: Move to save files
     if (argc > 1) {
         if (!strcmp(argv[1], "pendulum")) {
             PointArrAdd(&state.points, &(PhysPoint) {
@@ -95,20 +97,26 @@ int main(int argc, char** argv) {
             sscanf(argv[3], "%lf", &state.springs.ptr->constant);
         }
     }
+    //Setting ticks per frame
     state.time.desiredTicksPerFrame = 10000;
     if (argc == 3) sscanf(argv[2], "%lu", &state.time.desiredTicksPerFrame);
 
     //Main loop
     while(!WindowShouldClose()) {
         //Incrementing the simulation time and frame time
-        updateTimeDetached(state.time.desiredFrameTime / state.time.desiredTicksPerFrame);
+        updateTime(state.time.desiredFrameTime / state.time.desiredTicksPerFrame);
+        
+        //Updating physics when more ticks are needed and the sim is not paused
         if (!state.isPaused && state.time.runningTicks < state.time.desiredTicksPerFrame) updatePhysics();
 
-        //Polling at 60 hz
+        //Polling at 60hz to prevent repeat inputs
+        //TODO: Higher polling rate
         if (state.time.runningPollingTime >= 1.0/60) {
             processInputs();
             state.time.runningPollingTime = 0;
         }
+
+        //Drawing at specified framerate, or when sim is ready to be displayed
         if (state.time.runningFrameTime >= state.time.desiredFrameTime && (state.time.runningTicks >= state.time.desiredTicksPerFrame || state.isPaused)) {
             drawFrame();
             //Resetting counters
@@ -117,5 +125,6 @@ int main(int argc, char** argv) {
             state.physFrameCounter = 0;
         }
     }
+    //De-allocation and such
     cleanup();
 }

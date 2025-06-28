@@ -47,6 +47,7 @@ void EulerIncrementPosPoint(PhysPoint *point, double timeStep) {
 }
 
 
+
 //Calculates the square of the distance between point1 and point2
 //Useful to avoid the sqrt() if it is not needed
 double measureSquareDist(PhysPoint* point1, PhysPoint* point2) {
@@ -146,7 +147,7 @@ void ApplyGravForceObjectConstant(PhysPoint* point) {
 
 
 //Updates the simulation time every run
-void updateTime() {
+void updateTimeUnstable() {
     state.time.currTime = clock();
     state.time.timeStep = (double) (state.time.currTime - state.time.prevTime) / CLOCKS_PER_SEC;
     state.time.prevTime = state.time.currTime;
@@ -156,7 +157,7 @@ void updateTime() {
 }
 
 //Updates the time using a set frame time
-void updateTimeDetached(double timeStep) {
+void updateTime(double timeStep) {
     state.time.currTime = clock();
     state.time.realElapsedStep = (double) (state.time.currTime - state.time.prevTime) / CLOCKS_PER_SEC;
     state.time.prevTime = state.time.currTime;
